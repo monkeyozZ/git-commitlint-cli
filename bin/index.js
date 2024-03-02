@@ -1,19 +1,17 @@
 #!/usr/bin/env bash
 
-const { program } = require('commander');
-const inquirer = require('inquirer');
-const chalk = require('chalk');
-const fs = require('fs');
-const execa = require('execa');
-const { resolve } = require('path');
-const { existsSync } = require('fs');
-const { writeFileSync } = require('fs');
-const ora = require('ora');
+const { program } = require('commander')
+const inquirer = require('inquirer')
+const chalk = require('chalk')
+const execa = require('execa')
+const { resolve } = require('path')
+const { existsSync, writeFileSync } = require('fs')
+const ora = require('ora')
 
-const pkg = require('../package.json');
-const { version } = pkg;
+const pkg = require('../package.json')
+const { version } = pkg
 
-program.version(version, '-v, --version');
+program.version(version, '-v, --version')
 
 const promptList = [
   // 具体交互内容
@@ -32,12 +30,6 @@ const promptList = [
     name: 'projectFramework',
     choices: ['Vue', 'React', 'Angular', 'None'],
     default: 'Vue',
-  },
-  {
-    type: 'confirm',
-    message: '是否安装Eslint',
-    name: 'isEslint',
-    default: true,
   },
   {
     type: 'confirm',
@@ -66,7 +58,7 @@ const promptList = [
     name: 'isInit',
     default: true,
   },
-];
+]
 
 // 安装eslint
 const installEslint = (packageManager) => {
@@ -75,18 +67,18 @@ const installEslint = (packageManager) => {
     [
       'install',
       'eslint',
-      'eslint-config-airbnb-base',
+      'lint-staged',
+      'eslint-config-standard',
       'eslint-plugin-import',
       'eslint-plugin-node',
       'eslint-plugin-promise',
-      'eslint-plugin-standard',
       '-D',
     ],
     {
       stdio: 'inherit',
-    },
-  );
-};
+    }
+  )
+}
 // 安装prettier
 const installPrettier = (packageManager) => {
   execa.sync(
@@ -96,94 +88,138 @@ const installPrettier = (packageManager) => {
       'prettier',
       'eslint-config-prettier',
       'eslint-plugin-prettier',
-      'eslint-plugin-node',
-      'eslint-config-standard',
       '-D',
     ],
     {
       stdio: 'inherit',
-    },
-  );
-};
-// 安装husky
-const installHusky = (packageManager) => {
-  execa.sync(packageManager, ['install', 'husky', '-D'], {
-    stdio: 'inherit',
-  });
-};
+    }
+  )
+}
+
 // 安装commitlint
 const installCommitlint = (packageManager) => {
   execa.sync(
     packageManager,
     [
       'install',
+      'husky',
       '@commitlint/cli',
       '@commitlint/config-conventional',
-      'husky',
+      'conventional-changelog-atom',
       'commitizen',
       '-D',
     ],
     {
       stdio: 'inherit',
-    },
-  );
-};
-// 安装lint-staged
-const installLintStaged = (packageManager) => {
-  execa.sync(packageManager, ['install', 'lint-staged', '-D'], {
-    stdio: 'inherit',
-  });
-};
+    }
+  )
+}
+
 // 安装eslint-plugin-vue
 const installEslintPluginVue = (packageManager) => {
   execa.sync(packageManager, ['install', 'eslint-plugin-vue', '-D'], {
     stdio: 'inherit',
-  });
-};
+  })
+}
 // 安装eslint-plugin-react
 const installEslintPluginReact = (packageManager) => {
   execa.sync(packageManager, ['install', 'eslint-plugin-react', '-D'], {
     stdio: 'inherit',
-  });
-};
+  })
+}
 // 安装eslint-plugin-angular
 const installEslintPluginAngular = (packageManager) => {
   execa.sync(packageManager, ['install', 'eslint-plugin-angular', '-D'], {
     stdio: 'inherit',
-  });
-};
+  })
+}
 
 // 安装依赖
 const installDependencies = (packageManager, answers) => {
-  if (answers.isEslint) {
-    installEslint(packageManager);
-  }
-  if (answers.isPrettier) {
-    installPrettier(packageManager);
-  }
-
-  if (answers.isCommitlint) {
-    installHusky(packageManager);
-    installLintStaged(packageManager);
-    installCommitlint(packageManager);
-  }
+  installEslint(packageManager)
   if (answers.projectFramework === 'Vue') {
-    installEslintPluginVue(packageManager);
+    installEslintPluginVue(packageManager)
   }
   if (answers.projectFramework === 'React') {
-    installEslintPluginReact(packageManager);
+    installEslintPluginReact(packageManager)
   }
   if (answers.projectFramework === 'Angular') {
-    installEslintPluginAngular(packageManager);
+    installEslintPluginAngular(packageManager)
   }
-};
+  if (answers.isPrettier) {
+    installPrettier(packageManager)
+  }
+  if (answers.isCommitlint) {
+    installCommitlint(packageManager)
+  }
+}
 
+// 初始化或合并eslint配置文件
+const initEslintConfig = (answers) => {
+  // 判断是否存在.eslintrc.js文件，如果存在，则合并，不存在则创建.eslintrc.js文件
+  const eslintConfigPath = resolve(process.cwd(), '.eslintrc.js')
+  // 基础的eslint的配置文件
+  const eslintConfig = {
+    root: true,
+    env: {
+      node: true,
+      es6: true,
+      browser: true,
+    },
+    extends: [],
+    parserOptions: {
+      ecmaVersion: 2020,
+    },
+  }
+  // 根据用户选择的语言，添加对应的eslint配置
+  if (answers.projectType === 'typeScript') {
+    eslintConfig.extends.push('plugin:@typescript-eslint/recommended')
+  }
+  if (answers.projectType === 'javaScript') {
+    eslintConfig.extends.push('eslint:recommended')
+  }
+  // 根据用户选择的框架，添加对应的eslint配置
+  if (answers.projectFramework === 'Vue') {
+    eslintConfig.extends.push('plugin:vue/recommended')
+  }
+  if (answers.projectFramework === 'React') {
+    eslintConfig.extends.push('plugin:react/recommended')
+  }
+  if (answers.projectFramework === 'Angular') {
+    eslintConfig.extends.push('plugin:angular/recommended')
+  }
+  if (answers.isPrettier) {
+    eslintConfig.extends.push('prettier')
+  }
+  if (existsSync(eslintConfigPath)) {
+    const eslintConfigFile = require(eslintConfigPath)
+    Object.assign(eslintConfig, eslintConfigFile)
+  }
+
+  writeFileSync(
+    eslintConfigPath,
+    `module.exports = ${JSON.stringify(eslintConfig, null, 2)}`
+  )
+  // 判断是否存在 lint-staged 配置文件，如果存在，则合并，不存在则创建 lint-staged 配置文件
+  const lintStagedConfigPath = resolve(process.cwd(), '.lintstagedrc.js')
+  const lintStagedConfig = {
+    '*.{js,ts,tsx,jsx,vue}': ['eslint --fix'],
+  }
+  if (existsSync(lintStagedConfigPath)) {
+    const lintStagedConfigFile = require(lintStagedConfigPath)
+    Object.assign(lintStagedConfig, lintStagedConfigFile)
+  }
+  writeFileSync(
+    lintStagedConfigPath,
+    `module.exports = ${JSON.stringify(lintStagedConfig, null, 2)}`
+  )
+}
 // 初始化项目
 const initProject = () => {
-  const packageJsonPath = resolve(process.cwd(), 'package.json');
+  const packageJsonPath = resolve(process.cwd(), 'package.json')
   if (!existsSync(packageJsonPath)) {
-    console.log(chalk.red('package.json文件不存在'));
-    return;
+    console.log(chalk.red('package.json文件不存在'))
+    return
   }
   program
     .command('init')
@@ -191,121 +227,93 @@ const initProject = () => {
     .option('-i, --init', '初始化项目')
     .action(() => {
       inquirer.prompt(promptList).then((answers) => {
-        const spinner = ora('正在初始化项目').start();
-        spinner.color = 'yellow';
+        const spinner = ora('正在初始化项目').start()
+        spinner.color = 'yellow'
 
         if (answers.isInit) {
-          installDependencies(answers.packageManager, answers);
-          const fileCategory =
-            answers.projectType === 'typeScript' ? 'ts' : 'js';
-          if (answers.isEslint) {
-            const eslintConfig = {
-              extends: [
-                'airbnb-base',
-                'plugin:node/recommended',
-                'plugin:promise/recommended',
-                'plugin:standard/recommended',
-              ],
-              env: {
-                browser: true,
-                node: true,
-                es6: true,
-              },
-              parserOptions: {
-                ecmaVersion: 2018,
-              },
-              rules: {
-                'no-console': 'off',
-                'no-debugger': 'off',
-              },
-            };
-            if (answers.projectFramework === 'Vue') {
-              eslintConfig.extends.push('plugin:vue/essential');
-            }
-            if (answers.projectFramework === 'React') {
-              eslintConfig.extends.push('plugin:react/recommended');
-            }
-            if (answers.projectFramework === 'Angular') {
-              eslintConfig.extends.push('plugin:angular/johnpapa');
-            }
-            if (answers.projectType === 'typeScript') {
-              eslintConfig.extends.push(
-                'plugin:@typescript-eslint/recommended',
-              );
-              eslintConfig.parser = 'vue-eslint-parser';
-              eslintConfig.parserOptions = {
-                parser: '@typescript-eslint/parser',
-              };
-              eslintConfig.plugins = ['@typescript-eslint'];
-            }
-            // 判断是否存在.eslintrc.js文件，如果存在，则合并，不存在则创建
-
-            const eslintConfigPath = resolve(
-              process.cwd(),
-              `.eslintrc.${fileCategory}`,
-            );
-            if (existsSync(eslintConfigPath)) {
-              const eslintConfigFile = require(eslintConfigPath);
-              eslintConfig.extends = [
-                ...eslintConfig.extends,
-                ...eslintConfigFile.extends,
-              ];
-            }
-
-            writeFileSync(
-              resolve(process.cwd(), `.eslintrc.${fileCategory}`),
-              `module.exports = ${JSON.stringify(eslintConfig, null, 2)}`,
-            );
-          }
+          // 安装依赖
+          installDependencies(answers.packageManager, answers)
+          // 初始化或合并eslint配置文件
+          initEslintConfig(answers)
           if (answers.isPrettier) {
-            // 判断是否存在.prettierrc文件，如果存在，则合并，不存在则创建.prettierrc文件
+            // 判断是否存在.prettierrc.js文件，如果存在，则合并，不存在则创建..prettierrc.js文件
+            const prettierConfigPath = resolve(process.cwd(), '.prettierrc.js')
+            // 基础的prettier的配置文件
             const prettierConfig = {
+              semi: false,
               singleQuote: true,
-              semi: true,
               trailingComma: 'all',
-            };
-            const prettierConfigPath = resolve(
-              process.cwd(),
-              `prettier.config.${fileCategory}`,
-            );
-            if (existsSync(prettierConfigPath)) {
-              const prettierConfigFile = require(prettierConfigPath);
-              Object.assign(prettierConfig, prettierConfigFile);
             }
-
-            writeFileSync(
-              resolve(process.cwd(), `prettier.config.${fileCategory}`),
-              `module.exports = ${JSON.stringify(prettierConfig, null, 2)}`,
-            );
+            if (existsSync(prettierConfigPath)) {
+              const prettierConfigFile = require(prettierConfigPath)
+              Object.assign(prettierConfig, prettierConfigFile)
+            }
           }
           if (answers.isCommitlint) {
-            writeFileSync(
-              resolve(process.cwd(), '.commitlintrc.js'),
-              `module.exports = {extends: ['@commitlint/config-conventional']}`,
-            );
-            // husky的配置用于在提交代码前执行lint-staged和commitlint，commitlint用于检查提交信息格式，lint-staged用于检查提交的文件格式，如果不符合规范，则不允许提交
-            // 创建文件夹.husky，创建文件.husky/pre-commit，内容为lint-staged，创建文件.husky/commit-msg
-            const huskyPath = resolve(process.cwd(), '.husky');
-            if (!existsSync(huskyPath)) {
-              fs.mkdirSync(huskyPath);
+            // 判断是否存在.commitlintrc.js文件，如果存在，则合并，不存在则创建..commitlintrc.js文件
+            const commitlintConfigPath = resolve(
+              process.cwd(),
+              '.commitlintrc.js'
+            )
+            // 基础的commitlint的配置文件
+            const commitlintConfig = {
+              extends: ['@commitlint/config-conventional'],
+              parserPreset: 'conventional-changelog-atom',
+              rules: {
+                'type-case': [2, 'always', ['lower-case', 'upper-case']],
+                'type-enum': [
+                  2,
+                  'always',
+                  [
+                    'workflow',
+                    'ci',
+                    'wip',
+                    'types',
+                    'feat',
+                    'fix',
+                    'docs',
+                    'style',
+                    'refactor',
+                    'perf',
+                    'test',
+                    'chore',
+                    'revert',
+                    'build',
+                  ],
+                ],
+              },
             }
-            const commitMsgPath = resolve(huskyPath, 'commit-msg');
-            const preCommitPath = resolve(huskyPath, 'pre-commit');
+            if (existsSync(commitlintConfigPath)) {
+              const commitlintConfigFile = require(commitlintConfigPath)
+              Object.assign(commitlintConfig, commitlintConfigFile)
+            }
             writeFileSync(
-              commitMsgPath,
-              '#!/usr/bin/env sh\n. "$(dirname "$0")/_/husky.sh" && npx --no -- commitlint --edit\n',
-            );
+              commitlintConfigPath,
+              `module.exports = ${JSON.stringify(commitlintConfig, null, 2)}`
+            )
+
+            // 设置git hooks
+            execa.sync('npx', ['husky', 'init'], {
+              stdio: 'inherit',
+            })
+
+            // 将npx lint-staged写入到工作目录下的.husky/pre-commit
             writeFileSync(
-              preCommitPath,
-              '#!/usr/bin/env sh\n. "$(dirname "$0")/_/husky.sh" && npx lint-staged\n',
-            );
-            fs.chmodSync(commitMsgPath, '755');
+              resolve(process.cwd(), '.husky/pre-commit'),
+              'npx lint-staged'
+            )
+
+            // 将npx --no -- commitlint --edit \$1写入到工作目录下的.husky/commit-msg
+            writeFileSync(
+              resolve(process.cwd(), '.husky/commit-msg'),
+              'npx --no -- commitlint --edit $1'
+            )
           }
-          spinner.stop();
-          console.log(chalk.green('初始化成功'));
+          spinner.stop()
+          console.log(chalk.green('初始化成功'))
         }
-      });
-    });
-};
-initProject();
-program.parse(process.argv);
+      })
+    })
+}
+initProject()
+program.parse(process.argv)
