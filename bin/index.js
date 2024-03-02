@@ -105,7 +105,6 @@ const installCommitlint = (packageManager) => {
       'husky',
       '@commitlint/cli',
       '@commitlint/config-conventional',
-      'conventional-changelog-atom',
       'commitizen',
       '-D',
     ],
@@ -258,7 +257,6 @@ const initProject = () => {
             // 基础的commitlint的配置文件
             const commitlintConfig = {
               extends: ['@commitlint/config-conventional'],
-              parserPreset: 'conventional-changelog-atom',
               rules: {
                 'type-case': [2, 'always', ['lower-case', 'upper-case']],
                 'type-enum': [
