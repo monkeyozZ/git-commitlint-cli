@@ -1,14 +1,16 @@
 {
   "name": "git-commitlint-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "项目快速集成Eslint + Prettier + Husky + Commitlint + Lint-staged",
   "main": "./bin/index.js",
   "bin": {
-    "git-commitlint-cli": "./bin/index.js"
+    "create-lint-cli": "./libs/index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint --ext .js,.vue,.jsx",
+    "build": "rm -rf libs && babel bin -d libs",
+    "publish:prod": "npm run build && npm publish",
     "prepare": "husky"
   },
   "repository": {
@@ -33,14 +35,15 @@
     "commander": "^12.0.0",
     "execa": "^5.1.1",
     "inquirer": "^8.2.6",
-    "lodash": "^4.17.21",
     "ora": "^5.4.1"
   },
   "devDependencies": {
+    "@babel/cli": "^7.23.9",
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
     "@commitlint/cli": "^19.0.3",
     "@commitlint/config-conventional": "^19.0.3",
     "commitizen": "^4.3.0",
-    "conventional-changelog-atom": "^4.0.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-standard": "^17.1.0",

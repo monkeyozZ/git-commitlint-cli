@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env node
 
 const { program } = require('commander')
 const inquirer = require('inquirer')
@@ -247,6 +247,10 @@ const initProject = () => {
               const prettierConfigFile = require(prettierConfigPath)
               Object.assign(prettierConfig, prettierConfigFile)
             }
+            writeFileSync(
+              prettierConfigPath,
+              `module.exports = ${JSON.stringify(prettierConfig, null, 2)}`
+              )
           }
           if (answers.isCommitlint) {
             // 判断是否存在.commitlintrc.js文件，如果存在，则合并，不存在则创建..commitlintrc.js文件
