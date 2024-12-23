@@ -2,15 +2,19 @@
   "name": "git-commitlint-cli",
   "version": "1.0.1",
   "description": "项目快速集成Eslint + Prettier + Husky + Commitlint + Lint-staged",
-  "main": "./bin/index.js",
+  "type": "module",
+  "main": "lib/index.cjs",
   "bin": {
-    "create-lint-cli": "./libs/index.js"
+    "git-commitlint-cli": "lib/index.cjs"
+  },
+  "engines": {
+    "node": ">=v18.3.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint --ext .js,.vue,.jsx",
-    "build": "rm -rf libs && babel bin -d libs",
-    "publish:prod": "npm run build && npm publish",
+    "start": "node lib/index.cjs",
+    "build": "node script/build.mjs",
+    "lint": "eslint src --ext .ts",
+    "commit": "czg",
     "prepare": "husky"
   },
   "repository": {
@@ -22,7 +26,8 @@
     "Prettier",
     "Husky",
     "Commitlint",
-    "Lint-staged"
+    "Lint-staged",
+    "cz-git"
   ],
   "author": "monkey",
   "license": "ISC",
@@ -30,29 +35,37 @@
     "url": "https://github.com/monkeyozZ/git-commitlint-cli/issues"
   },
   "homepage": "https://github.com/monkeyozZ/git-commitlint-cli#readme",
-  "dependencies": {
-    "chalk": "^4.0.0",
-    "commander": "^12.0.0",
-    "execa": "^5.1.1",
-    "inquirer": "^8.2.6",
-    "ora": "^5.4.1"
-  },
   "devDependencies": {
-    "@babel/cli": "^7.23.9",
-    "@babel/core": "^7.24.0",
-    "@babel/preset-env": "^7.24.0",
-    "@commitlint/cli": "^19.0.3",
-    "@commitlint/config-conventional": "^19.0.3",
-    "commitizen": "^4.3.0",
+    "@types/prompts": "^2.4.9",
+    "esbuild": "^0.24.0",
+    "prompts": "^2.4.2",
+    "typescript": "^5.0.0",
+    "kleur": "^4.1.5",
+    "ora": "^8.1.1",
     "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "eslint-plugin-promise": "^6.1.1",
-    "husky": "^9.0.11",
-    "lint-staged": "^15.2.2",
-    "prettier": "^3.2.5"
+    "@typescript-eslint/parser": "^6.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-config-prettier": "^9.0.0",
+    "prettier": "^3.3.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11",
+    "cz-git": "^1.11.0",
+    "czg": "^1.11.0",
+    "@commitlint/cli": "^17.0.0",
+    "@commitlint/config-conventional": "^17.0.0"
+  },
+  "dependencies": {},
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-git",
+      "config": "./cz.config.js"
+    }
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }
