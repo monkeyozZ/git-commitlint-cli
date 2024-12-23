@@ -1,6 +1,6 @@
 {
   "name": "git-commitlint-cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "项目快速集成Eslint + Prettier + Husky + Commitlint + Lint-staged",
   "type": "module",
   "main": "lib/index.cjs",
