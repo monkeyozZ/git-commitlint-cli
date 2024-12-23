@@ -10,12 +10,18 @@
   "engines": {
     "node": ">=v18.3.0"
   },
+  "files": [
+    "lib",
+    "presetConfig",
+    "README.md"
+  ],
   "scripts": {
     "start": "node lib/index.cjs",
     "build": "node script/build.mjs",
     "lint": "eslint src --ext .ts",
     "commit": "czg",
-    "prepare": "husky"
+    "prepare": "husky",
+    "release": "release-it"
   },
   "repository": {
     "type": "git",
